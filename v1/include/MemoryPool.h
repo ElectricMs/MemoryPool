@@ -87,13 +87,15 @@ public:
 };
 
 template<typename T, typename... Args>
-T* newElement(Args&&... args)
+T* newElement(Args&&... args)//实现通用引用，完美转发
 {
     T* p = nullptr;
     // 根据元素大小选取合适的内存池分配内存
+    // reinterpret_cast 是C++中的强制类型转换操作符之一，这里将返回的void*转换为T*
+    // 然后检查这个赋值操作的结果是否不等于 nullptr。如果不等于 nullptr，意味着内存分配成功；如果等于 nullptr，则表示内存分配失败
     if ((p = reinterpret_cast<T*>(HashBucket::useMemory(sizeof(T)))) != nullptr)
         // 在分配的内存上构造对象
-        new(p) T(std::forward<Args>(args)...);
+        new(p) T(std::forward<Args>(args)...);//placemnt new 和完美转发
 
     return p;
 }
@@ -104,7 +106,7 @@ void deleteElement(T* p)
     // 对象析构
     if (p)
     {
-        p->~T();
+        p->~T();//调用T的析构函数
          // 内存回收
         HashBucket::freeMemory(reinterpret_cast<void*>(p), sizeof(T));
     }
