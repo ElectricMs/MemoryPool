@@ -6,6 +6,8 @@ mutex
 
 size_t
 
+右值引用
+
 
 
 申请一块较大的内存块，之后将这块内存的管理放在应用层进行，减小系统调用带来的开销
@@ -21,7 +23,7 @@ size_t
 
 
 
-## cpp学习
+## cpp基础
 
 
 
@@ -1348,6 +1350,1010 @@ ClassName(const ClassName& other);
 
 
 
+## cpp STL
+
+
+
+### 简介
+
+C++ 的 **STL（Standard Template Library，标准模板库）** 是一个功能强大且高效的库，它提供了一系列通用算法和数据结构，使 C++ 编程更加简洁和高效。STL 主要由以下几个部分组成：
+
+------
+
+**1. 容器（Containers）**
+
+容器是 STL 中用于存储数据的数据结构，根据底层实现可分为 **序列式容器** 和 **关联式容器**。
+
+**（1）序列式容器**
+
+序列式容器（Sequential Containers）按照元素的插入顺序存储数据：
+
+- `vector<T>`：动态数组，支持快速随机访问，适合频繁读取操作。
+- `deque<T>`：双端队列，支持头尾快速插入和删除。
+- `list<T>`：双向链表，适合频繁的插入、删除操作（中间位置）。
+- `forward_list<T>`：单向链表，内存占用更少，但只支持单向遍历。
+- `array<T, N>`：固定大小的数组，封装了普通 C++ 数组的功能。
+- `string`：专门用于存储和操作字符串的类。
+
+**（2）关联式容器**
+
+关联式容器（Associative Containers）采用 **平衡二叉搜索树（如红黑树）** 进行存储，支持高效的查找、插入、删除操作：
+
+- `set<T>`：集合，不允许重复元素，元素默认按 **升序** 排序。
+- `multiset<T>`：允许重复元素的集合。
+- `map<K, V>`：键值对（映射），不允许重复键，按 **键升序** 排序。
+- `multimap<K, V>`：允许重复键的映射。
+
+**（3）无序容器**
+
+无序容器（Unordered Containers）基于 **哈希表（hash table）** 实现，查找速度更快（O(1) 平均时间复杂度）：
+
+- `unordered_set<T>`：无序集合，不允许重复元素。
+- `unordered_multiset<T>`：无序集合，允许重复元素。
+- `unordered_map<K, V>`：无序映射，不允许重复键。
+- `unordered_multimap<K, V>`：无序映射，允许重复键。
+
+------
+
+**2. 迭代器（Iterators）**
+
+迭代器用于遍历 STL 容器中的元素，类似指针，可以支持不同的遍历方式：
+
+- **输入迭代器**（Input Iterator）：只能从头到尾单向读取，如 `istream_iterator`。
+- **输出迭代器**（Output Iterator）：只能向容器写入数据，如 `ostream_iterator`。
+- **前向迭代器**（Forward Iterator）：支持单向遍历，能多次读取相同元素，如 `forward_list`。
+- **双向迭代器**（Bidirectional Iterator）：支持双向遍历，如 `list`、`set`。
+- **随机访问迭代器**（Random Access Iterator）：支持类似数组的随机访问，如 `vector`、`deque`。
+
+------
+
+**3. 算法（Algorithms）**
+
+STL 提供了大量的通用算法，如：
+
+- **排序**：`sort()`、`stable_sort()`。
+- **查找**：`find()`、`binary_search()`。
+- **变换**：`transform()`。
+- **计数**：`count()`。
+- **删除/替换**：`remove()`、`replace()`。
+- **合并/分割**：`merge()`、`partition()`。
+
+示例：
+
+```cpp
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+int main() {
+    std::vector<int> vec = {5, 2, 8, 1, 9};
+    std::sort(vec.begin(), vec.end());  // 升序排序
+
+    for (int num : vec) {
+        std::cout << num << " ";
+    }
+    return 0;
+}
+```
+
+------
+
+**4. 仿函数（Functors）**
+
+仿函数（函数对象）是重载 `operator()` 的类或结构体，主要用于定制 STL 算法：
+
+```cpp
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+struct Compare {
+    bool operator()(int a, int b) { return a > b; }  // 降序
+};
+
+int main() {
+    std::vector<int> vec = {5, 2, 8, 1, 9};
+    std::sort(vec.begin(), vec.end(), Compare());
+
+    for (int num : vec) {
+        std::cout << num << " ";
+    }
+    return 0;
+}
+```
+
+------
+
+**5. 适配器（Adapters）**
+
+适配器是对已有 STL 组件的封装，使其行为发生变化：
+
+- **容器适配器**：`stack`、`queue`、`priority_queue`。
+- **迭代器适配器**：`reverse_iterator`、`insert_iterator`。
+- **函数适配器**：`bind()`、`not1()`、`not2()`。
+
+示例：
+
+```cpp
+#include <iostream>
+#include <stack>
+
+int main() {
+    std::stack<int> s;
+    s.push(10);
+    s.push(20);
+    s.push(30);
+
+    while (!s.empty()) {
+        std::cout << s.top() << " ";  // 30 20 10
+        s.pop();
+    }
+    return 0;
+}
+```
+
+
+
+### vector
+
+`vector` 是 C++ STL（标准模板库）中最常用的 **序列式容器**，它实现了 **动态数组**，支持高效的 **随机访问** 和 **自动扩容**，非常适合存储和操作连续存储的数据。
+
+------
+
+#### **1. `vector` 的特点**
+
+- **动态扩展**：`vector` 会在容量不足时自动扩展，通常是 **2 倍增长**。
+- **连续存储**：底层实现是 **动态数组**，所有元素都存储在 **连续的内存块** 中，因此可以像普通数组一样通过索引访问元素。
+- **快速随机访问**：支持 **O(1)** 时间复杂度的随机访问，即 `vec[i]`。
+- **支持增删改查**：
+  - 在 **末尾插入、删除** 元素（`push_back()`、`pop_back()`）速度快（O(1)）。
+  - **中间插入、删除** 需要 **移动数据**，时间复杂度是 O(n)。
+- **可与标准算法兼容**：支持 STL 算法，如 `sort()`、`find()` 等。
+
+------
+
+#### **2. `vector` 的常见操作**
+
+##### **（1）定义和初始化**
+
+```cpp
+#include <iostream>
+#include <vector>
+using namespace std;
+
+int main() {
+    vector<int> vec1;               // 默认构造空 vector
+    vector<int> vec2(5);            // 5 个元素，默认初始化为 0
+    vector<int> vec3(5, 10);        // 5 个元素，每个值都是 10
+    vector<int> vec4 = {1, 2, 3};   // 列表初始化
+    vector<int> vec5(vec4);         // 拷贝构造
+
+    return 0;
+}
+```
+
+------
+
+##### **（2）基本操作**
+
+| 操作             | 方法                 | 说明                   |
+| ---------------- | -------------------- | ---------------------- |
+| **增**           | `push_back(x)`       | 末尾添加元素           |
+| **插**           | `insert(it, x)`      | 在指定位置插入         |
+| **删**           | `pop_back()`         | 删除末尾元素           |
+| **删**           | `erase(it)`          | 删除指定位置元素       |
+| **改**           | `vec[i] = x`         | 修改指定位置元素       |
+| **查**           | `vec[i]`             | 访问元素               |
+| **查**           | `at(i)`              | 安全访问（带边界检查） |
+| **大小**         | `size()`             | 获取元素个数           |
+| **容量**         | `capacity()`         | 获取当前容量           |
+| **清空**         | `clear()`            | 清空所有元素           |
+| **判断是否为空** | `empty()`            | 返回 `true` 或 `false` |
+| **前后元素**     | `front()` / `back()` | 访问首/尾元素          |
+
+示例：
+
+```cpp
+#include <iostream>
+#include <vector>
+using namespace std;
+
+int main() {
+    vector<int> vec = {1, 2, 3, 4, 5};
+
+    vec.push_back(6);      // 添加元素 6
+    vec.insert(vec.begin(), 0);  // 在头部插入 0
+
+    vec.pop_back();        // 删除末尾元素 6
+    vec.erase(vec.begin()); // 删除第一个元素 0
+
+    for (int num : vec) {
+        cout << num << " ";  // 输出 1 2 3 4
+    }
+
+    return 0;
+}
+```
+
+------
+
+##### **（3）遍历 `vector`**
+
+**方法 1：普通 `for` 循环**
+
+```cpp
+for (size_t i = 0; i < vec.size(); ++i) {
+    cout << vec[i] << " ";
+}
+```
+
+**方法 2：范围 `for` 循环**
+
+```cpp
+for (int num : vec) {
+    cout << num << " ";
+}
+```
+
+**方法 3：迭代器**
+
+```cpp
+for (vector<int>::iterator it = vec.begin(); it != vec.end(); ++it) {
+    cout << *it << " ";
+}
+```
+
+**方法 4：C++11 `auto` 关键字**
+
+```cpp
+for (auto it = vec.begin(); it != vec.end(); ++it) {
+    cout << *it << " ";
+}
+```
+
+------
+
+##### **（4）容量管理**
+
+```cpp
+vector<int> vec;
+vec.reserve(100);   // 预分配 100 个空间，避免频繁扩容
+vec.shrink_to_fit(); // 释放多余的内存
+```
+
+------
+
+#### **3. `vector` 的扩容机制**
+
+- `vector` 在空间不足时会 **自动扩展**，通常是 **原容量的 2 倍**。
+- `capacity()` 返回当前分配的总容量，而 `size()` 仅返回已存储的元素个数。
+
+示例：
+
+```cpp
+#include <iostream>
+#include <vector>
+using namespace std;
+
+int main() {
+    vector<int> vec;
+    for (int i = 0; i < 10; ++i) {
+        vec.push_back(i);
+        cout << "Size: " << vec.size() << ", Capacity: " << vec.capacity() << endl;
+    }
+    return 0;
+}
+```
+
+**输出示例（不同编译器可能略有不同）：**
+
+```
+Size: 1, Capacity: 1
+Size: 2, Capacity: 2
+Size: 3, Capacity: 4
+Size: 4, Capacity: 4
+Size: 5, Capacity: 8
+Size: 6, Capacity: 8
+Size: 7, Capacity: 8
+Size: 8, Capacity: 8
+Size: 9, Capacity: 16
+Size: 10, Capacity: 16
+```
+
+------
+
+#### **4. `vector` 与 `array`、`list` 的比较**
+
+| 特性              | `vector`           | `array`            | `list`         |
+| ----------------- | ------------------ | ------------------ | -------------- |
+| 存储方式          | **动态数组**       | **静态数组**       | **双向链表**   |
+| 访问速度          | **O(1) 随机访问**  | O(1)               | O(n)           |
+| 插入/删除（末尾） | **O(1)**           | 不支持             | O(1)           |
+| 插入/删除（中间） | **O(n)**           | O(n)               | **O(1)**       |
+| 迭代器            | **随机访问迭代器** | **随机访问迭代器** | **双向迭代器** |
+| 适用场景          | 频繁访问、少量插入 | 固定大小的数组     | 频繁插入删除   |
+
+------
+
+#### **5. `vector` 的常见问题**
+
+
+
+resize()：改变当前容器内含有元素的数量(size())，⽽不是容器的容量
+
+1. 当resize(len)中len>v.capacity()，则数组中的size和capacity均设置为len;
+2. 当resize(len)中len<=v.capacity()，则数组中的size设置为len，⽽capacity不变;   
+
+reserve()：改变当前容器的最⼤容量（capacity）
+
+1. 如果reserve(len)的值 > 当前的capacity()，那么会重新分配⼀块能存len个对象的空间，然后把之前的对象通 过copy construtor复制过来，销毁之前的内存; 
+2. 当reserve(len)中len<=当前的capacity()，则数组中的capacity不变，size不变，即不对容器做任何改变。 
+
+
+
+##### **（1）如何防止扩容影响性能？**
+
+可以使用 `reserve(n)` 预分配空间，避免不必要的扩容：
+
+```cpp
+vector<int> vec;
+vec.reserve(1000); // 预分配 1000 个元素的空间
+```
+
+##### **（2）如何释放 `vector` 多余的内存？**
+
+使用 `shrink_to_fit()` 释放未使用的容量：
+
+```cpp
+vector<int> vec(1000, 1);
+vec.clear();
+vec.shrink_to_fit();  // 释放多余的内存
+```
+
+------
+
+#### **总结**
+
+1. `vector` 是 **动态数组**，支持 **快速随机访问（O(1)）**，但在 **插入和删除** 时可能需要 **移动元素**（O(n)）。
+2. 末尾插入/删除效率高，适合 **存储大量连续数据**。
+3. `vector` 会 **自动扩容**，但可以使用 `reserve()` 预分配空间以优化性能。
+4. **适用于频繁随机访问、不常插入/删除中间元素的场景**。
+
+如果需要 **高效插入/删除**，建议使用 `list`；如果数据大小固定，建议使用 `array`。
+
+
+
+
+
+### list
+
+`list` 是 C++ STL（标准模板库）中的 **双向链表（Doubly Linked List）** 容器，它支持 **快速的插入和删除** 操作，但不支持 **随机访问**。
+
+------
+
+#### **1. `list` 的特点**
+
+- **双向链表结构**：每个元素存储一个指向前后元素的指针（`prev` 和 `next`）。
+- **插入和删除操作高效（O(1)）**：
+  - **在中间插入/删除** 元素不需要移动其他元素，只需要调整指针。
+  - **在头部/尾部插入/删除** 的效率远高于 `vector`。
+- **不支持随机访问（O(n））**：
+  - 不能使用 `[]` 或 `at(i)` 访问特定索引元素，只能使用 **迭代器遍历**。
+- **比 `vector` 占用更多内存**：
+  - 由于存储了额外的指针（`prev` 和 `next`），`list` 的内存开销比 `vector` 大。
+
+------
+
+#### **2. `list` 的常见操作**
+
+##### **（1）定义和初始化**
+
+```cpp
+#include <iostream>
+#include <list>
+using namespace std;
+
+int main() {
+    list<int> lst1;               // 空链表
+    list<int> lst2(5);            // 5 个元素，默认初始化为 0
+    list<int> lst3(5, 10);        // 5 个元素，每个值为 10
+    list<int> lst4 = {1, 2, 3};   // 列表初始化
+    list<int> lst5(lst4);         // 拷贝构造
+
+    return 0;
+}
+```
+
+------
+
+##### **（2）基本操作**
+
+| 操作     | 方法                         | 说明                              |
+| -------- | ---------------------------- | --------------------------------- |
+| **增**   | `push_back(x)`               | 末尾添加元素                      |
+| **增**   | `push_front(x)`              | 头部添加元素                      |
+| **插**   | `insert(it, x)`              | 在指定位置插入                    |
+| **删**   | `pop_back()`                 | 删除末尾元素                      |
+| **删**   | `pop_front()`                | 删除头部元素                      |
+| **删**   | `erase(it)`                  | 删除指定位置元素                  |
+| **改**   | `it = lst.begin(); *it = x;` | 通过迭代器修改元素                |
+| **查**   | `front()` / `back()`         | 获取头/尾元素                     |
+| **大小** | `size()`                     | 获取元素个数                      |
+| **清空** | `clear()`                    | 清空所有元素                      |
+| **排序** | `sort()`                     | 升序排序（默认 `operator<` 比较） |
+| **反转** | `reverse()`                  | 反转链表                          |
+| **合并** | `merge(lst2)`                | 合并两个有序链表                  |
+| **去重** | `unique()`                   | 删除相邻重复元素                  |
+
+示例：
+
+```cpp
+#include <iostream>
+#include <list>
+using namespace std;
+
+int main() {
+    list<int> lst = {1, 2, 3, 4, 5};
+
+    lst.push_front(0);  // 头部插入 0
+    lst.push_back(6);   // 尾部插入 6
+
+    lst.pop_front();    // 删除头部元素 0
+    lst.pop_back();     // 删除尾部元素 6
+
+    for (int num : lst) {
+        cout << num << " ";  // 输出 1 2 3 4 5
+    }
+
+    return 0;
+}
+```
+
+------
+
+##### **（3）遍历 `list`**
+
+**方法 1：范围 `for` 循环**
+
+```cpp
+for (int num : lst) {
+    cout << num << " ";
+}
+```
+
+**方法 2：迭代器**
+
+```cpp
+for (list<int>::iterator it = lst.begin(); it != lst.end(); ++it) {
+    cout << *it << " ";
+}
+```
+
+**方法 3：C++11 `auto` 关键字**
+
+```cpp
+for (auto it = lst.begin(); it != lst.end(); ++it) {
+    cout << *it << " ";
+}
+```
+
+------
+
+##### **（4）插入和删除**
+
+`list` 允许在任意位置高效插入/删除：
+
+```cpp
+#include <iostream>
+#include <list>
+using namespace std;
+
+int main() {
+    list<int> lst = {1, 2, 3, 4, 5};
+
+    auto it = lst.begin();
+    advance(it, 2); // 移动到第 3 个元素（从 0 开始计数）
+
+    lst.insert(it, 99);  // 在第 3 个元素前插入 99
+    lst.erase(it);       // 删除第 3 个元素（原来的 3）
+
+    for (int num : lst) {
+        cout << num << " ";
+    }
+
+    return 0;
+}
+```
+
+------
+
+##### **（5）排序和去重**
+
+#### **排序**
+
+`list` 自带 `sort()` 方法，可以对链表进行排序：
+
+```cpp
+list<int> lst = {4, 2, 3, 1, 5};
+lst.sort();  // 升序排序
+```
+
+也可以使用自定义排序规则：
+
+```cpp
+lst.sort([](int a, int b) { return a > b; });  // 降序排序
+```
+
+#### **去重**
+
+`unique()` 只能删除 **相邻的重复元素**：
+
+```cpp
+list<int> lst = {1, 2, 2, 3, 3, 4, 5};
+lst.unique();  // 变为 {1, 2, 3, 4, 5}
+```
+
+如果 `list` 不是排序好的，去重前需要先 `sort()`：
+
+```cpp
+lst.sort();
+lst.unique();
+```
+
+------
+
+#### **3. `list` 与 `vector` 的比较**
+
+| 特性          | `list`                   | `vector`                 |
+| ------------- | ------------------------ | ------------------------ |
+| 底层结构      | **双向链表**             | **动态数组**             |
+| 随机访问      | **O(n)（不支持 `[]`）**  | **O(1)（支持 `[]`）**    |
+| 头部插入/删除 | **O(1)**                 | **O(n)**                 |
+| 中间插入/删除 | **O(1)**（需要迭代器）   | **O(n)**（需要移动元素） |
+| 末尾插入/删除 | **O(1)**                 | **O(1)**（如果无扩容）   |
+| 内存占用      | **较大**（存储额外指针） | **较小**（连续存储）     |
+| 适用场景      | **频繁插入/删除**        | **频繁访问、批量处理**   |
+
+------
+
+#### **4. `list` 适用场景**
+
+- 需要 **频繁插入或删除**（特别是 **中间** 位置）。
+- **不需要随机访问**，主要进行 **顺序遍历**。
+- 需要支持 **合并、排序、去重** 操作。
+- 适合 **大型数据结构**，如 **链表、队列、栈**。
+
+**如果需要频繁访问元素，建议使用 `vector`；如果插入/删除较多，建议使用 `list`。**
+
+------
+
+#### **总结**
+
+1. **`list` 是双向链表**，支持 **O(1) 头部/尾部插入删除**，但不支持 **O(1) 随机访问**。
+2. **适合频繁的插入/删除操作**，特别是 **中间位置** 的修改。
+3. **比 `vector` 占用更多内存**，但可通过 `sort()`、`merge()`、`unique()` 进行高效操作。
+4. **适用于队列、链表、排序、去重等操作**，但如果需要 **随机访问**，应该使用 `vector`。
+
+
+
+
+
+## cpp 泛型编程
+
+
+
+#### 模板全特化和偏特化
+
+⼀个模板被称为全特化的条件：1.必须有⼀个主模板类 2.模板类型被全部明确化。  
+
+**类模板**
+
+```cpp
+template<typename T1, typename T2>
+class Test
+{
+    public:
+    Test(T1 i,T2 j):a(i),b(j){cout<<"模板类"<<endl;}
+    private:
+    T1 a;
+    T2 b;
+};
+
+template<>
+class Test<int , char>
+{
+    public:
+    Test(int i, char j):a(i),b(j){cout<<"全特化"<<endl;}
+    private:
+    int a;
+    char b;
+};
+
+template <typename T2>
+class Test<char, T2>
+{
+    public:
+    Test(char i, T2 j):a(i),b(j){cout<<"偏特化"<<endl;}
+    private:
+    char a;
+    T2 b;
+}
+```
+
+**函数模板**
+
+函数模板，只有全特化，偏特化的功能可以通过函数的重载完成。  
+
+```cpp
+#include <iostream>
+using namespace std;
+
+// 通用模板
+template <typename T>
+void print(T value) {
+    cout << "通用模板: " << value << endl;
+}
+
+// 全特化：针对 int 类型
+template <>
+void print<int>(int value) {
+    cout << "全特化: 处理 int -> " << value << endl;
+}
+
+// 偏特化（通过重载实现）：针对指针类型
+template <typename T>
+void print(T* value) {
+    cout << "偏特化: 处理指针类型 -> " << *value << endl;
+}
+
+int main() {
+    print(3.14);    // 通用模板: 3.14
+    print(42);      // 全特化: 处理 int -> 42
+    string str = "hello";
+    print(&str);    // 偏特化: 处理指针类型 -> hello
+    return 0;
+}
+```
+
+**特殊案例：指针偏特化**
+
+```cpp
+#include <iostream>
+using namespace std;
+
+// 通用模板
+template <typename T>
+class MyClass {
+public:
+    void show() { cout << "通用模板: " << typeid(T).name() << endl; }
+};
+
+// 偏特化：T 是指针类型时
+template <typename T>
+class MyClass<T*> {
+public:
+    void show() { cout << "偏特化: T 是指针类型 -> " << typeid(T).name() << "*" << endl; }
+};
+
+int main() {
+    MyClass<int> obj1;
+    obj1.show(); // 输出：通用模板: int
+
+    MyClass<int*> obj2;
+    obj2.show(); // 输出：偏特化: T 是指针类型 -> int*
+
+    return 0;
+}
+```
+
+
+
+
+
+## cpp11的新特性
+
+
+
+### **统一的初始化方法**
+
+在 C++11 之前，初始化不同类型的变量和容器有不同的方式，容易混淆。而 C++11 引入了 **统一的初始化方法**（列表初始化 `{}`），使得初始化更加简洁、安全。
+
+```cpp
+#include <iostream>
+#include <vector>
+using namespace std;
+
+int main() {
+    int a = 10;     // 传统初始化
+    int b(20);      // 传统初始化
+    int c{30};      // C++11 统一初始化
+    int d = {40};   // C++11 统一初始化
+
+    vector<int> vec1 = {1, 2, 3, 4, 5}; // 统一初始化
+    vector<int> vec2{6, 7, 8, 9, 10};   // 统一初始化
+
+    cout << "a=" << a << ", b=" << b << ", c=" << c << ", d=" << d << endl;
+    return 0;
+}
+```
+
+**优点**
+
+- **防止窄化转换**（narrowing conversion），比如 `double` 赋值给 `int` 时会出错。
+- **支持初始化 STL 容器**，更简洁直观。
+
+------
+
+### **成员变量默认初始化**
+
+C++11 允许类的**成员变量在定义时直接初始化**，不需要在构造函数中初始化，简化了代码。
+
+```cpp
+#include <iostream>
+using namespace std;
+
+class Test {
+private:
+    int x{10};  // 直接初始化
+    double y = 3.14; // 也可以使用 = 进行初始化
+public:
+    void show() {
+        cout << "x = " << x << ", y = " << y << endl;
+    }
+};
+
+int main() {
+    Test t;
+    t.show(); // 输出：x = 10, y = 3.14
+    return 0;
+}
+```
+
+**优点**
+
+- **代码更清晰**，减少构造函数的初始化代码。
+- **避免未初始化变量的错误**。
+
+------
+
+### **`auto` 关键字**
+
+`auto` 允许编译器自动推导变量的类型，减少手动声明的冗余，使代码更简洁。
+
+```cpp
+#include <iostream>
+#include <vector>
+using namespace std;
+
+int main() {
+    auto x = 42;     // x 被推导为 int
+    auto y = 3.14;   // y 被推导为 double
+    auto z = "Hello"; // z 被推导为 const char*
+
+    vector<int> vec = {1, 2, 3, 4};
+    for (auto v : vec) {
+        cout << v << " "; // 自动推导 v 的类型
+    }
+    return 0;
+}
+```
+
+**优点**
+
+- **减少冗长的类型声明**，尤其是模板类型。
+- **提高代码可读性**。
+
+------
+
+### **`decltype` 关键字**
+
+`decltype` 用于获取表达式的**类型**，类似于 `typeof`。
+
+```cpp
+#include <iostream>
+using namespace std;
+
+int main() {
+    int a = 10;
+    decltype(a) b = 20; // b 的类型和 a 一样，都是 int
+
+    cout << "b = " << b << endl; // 输出：b = 20
+    return 0;
+}
+```
+
+**用途**
+
+- **用于模板元编程**，可获取变量、表达式或函数返回值的类型。
+
+------
+
+### **智能指针**
+
+C++11 引入了 **智能指针**，用于自动管理动态分配的对象，避免内存泄漏。
+
+```cpp
+#include <iostream>
+#include <memory>
+using namespace std;
+
+int main() {
+    shared_ptr<int> p1 = make_shared<int>(10); // 创建 shared_ptr
+    unique_ptr<int> p2 = make_unique<int>(20); // 创建 unique_ptr
+
+    cout << "p1 = " << *p1 << ", p2 = " << *p2 << endl;
+    return 0;
+}
+```
+
+**优点**
+
+- **自动管理资源**，避免手动 `delete`。
+- **`shared_ptr`** 允许多个指针共享同一资源。
+- **`unique_ptr`** 只能有一个所有者，防止误用。
+
+------
+
+### **`nullptr` 关键字**
+
+C++11 引入 `nullptr` 作为 **空指针的标准表示**，替代 `NULL`，提高类型安全性。
+
+```cpp
+#include <iostream>
+using namespace std;
+
+void func(int* ptr) {
+    if (ptr) cout << "指针有效" << endl;
+    else cout << "空指针" << endl;
+}
+
+int main() {
+    func(nullptr); // 传递 nullptr
+    return 0;
+}
+```
+
+------
+
+### **基于范围的 `for` 循环**
+
+简化遍历 **数组** 和 **STL 容器**。
+
+```cpp
+#include <iostream>
+#include <vector>
+using namespace std;
+
+int main() {
+    vector<int> vec = {1, 2, 3, 4, 5};
+    for (int v : vec) { // 遍历 vec
+        cout << v << " ";
+    }
+    return 0;
+}
+```
+
+------
+
+### **右值引用 (`&&`) 和 `move` 语义**
+
+#### 左值和右值
+
+```cpp
+//左值（Lvalue）：可以取地址，有名称的变量，例如：
+int a = 10;  // a 是左值
+//右值（Rvalue）：临时值，没有名称，不能取地址，例如：
+int b = 2 + 3;  // 2+3 是右值
+int c = a * 5;  // a*5 是右值
+
+int x = 10;  // x 是左值
+int y = x + 20; // x+20 是右值
+```
+
+C++11 允许使用 `&&` 来**绑定右值**：
+
+```cpp
+int &&r = 10;  // 10 是右值，r 绑定它
+```
+
+但不能绑定**左值**：
+
+```cpp
+int a = 10;
+int &&r = a;  // ❌ 错误，不能绑定左值
+```
+
+**解决方案**：使用 `std::move()` 将左值转换为右值：
+
+```cpp
+int &&r = std::move(a); // ✅ 这样才行
+```
+
+用于函数重载：
+
+```cpp
+void process(int& x) { cout << "左值引用" << endl; }
+void process(int&& x) { cout << "右值引用" << endl; }
+
+int main() {
+    int a = 10;
+    process(a);  // 输出：左值引用
+    process(20); // 输出：右值引用
+}
+```
+
+#### 移动构造
+
+```cpp
+#include <iostream>
+#include <vector>
+using namespace std;
+
+class Test {
+public:
+    vector<int> data;
+    Test() { cout << "默认构造" << endl; }
+    Test(const Test& t) { cout << "拷贝构造" << endl; } // 传统拷贝
+    Test(Test&& t) noexcept { // 移动构造
+        cout << "移动构造" << endl;
+        data = move(t.data);
+    }
+};
+
+int main() {
+    Test t1;
+    Test t2 = t1;       // 调用拷贝构造
+    Test t3 = move(t1); // 调用移动构造
+    return 0;
+}
+```
+
+```cpp
+#include <iostream>
+#include <vector>
+using namespace std;
+
+class Test {
+public:
+    vector<int> data;
+    
+    Test() { cout << "默认构造" << endl; }
+
+    // 拷贝构造（深拷贝，创建新副本）
+    Test(const Test& t) {
+        cout << "拷贝构造" << endl;
+        data = t.data;
+    }
+
+    // 移动构造（偷走资源）
+    Test(Test&& t) noexcept {
+        cout << "移动构造" << endl;
+        data = move(t.data); // “偷走”资源
+    }
+};
+
+int main() {
+    Test t1;
+    Test t2 = t1;       // 调用拷贝构造
+    Test t3 = move(t1); // 调用移动构造（t1 资源被偷走）
+    return 0;
+}
+```
+
+- **拷贝构造**：需要 **分配新内存 + 复制数据**，速度慢。
+- **移动构造**：**只是转移指针**，**不复制数据**，速度快。
+
+`std::move()` 不会删除对象，而是转移对象的资源，使原对象的资源变为空，提高程序运行效率！
+
+#### noexcept关键字
+
+C++ 标准库的某些容器（如 `std::vector`）在**扩容或重新分配内存时**，如果元素类型的**移动构造函数**是 `noexcept`，则会使用**移动操作**而不是**拷贝操作**。
+
+如果**没有 `noexcept`**，标准库会选择**拷贝构造**，即使有移动构造！
+
+因为如果移动构造可能抛异常，万一移动失败，程序状态可能会变得不可预测，所以 `std::vector` 等容器会回退到**更安全的拷贝构造**（但性能更差）。
+
+#### 完美转发
 
 
 
@@ -1357,6 +2363,77 @@ ClassName(const ClassName& other);
 
 
 
+
+
+### **无序容器 (`unordered_map` 等)**
+
+C++11 引入了 **哈希表容器**，相比 `map`，效率更高。
+
+```cpp
+#include <iostream>
+#include <unordered_map>
+using namespace std;
+
+int main() {
+    unordered_map<string, int> myMap = {{"Alice", 25}, {"Bob", 30}};
+    cout << "Alice: " << myMap["Alice"] << endl;
+    return 0;
+}
+```
+
+------
+
+### **正则表达式 (`regex`)**
+
+支持 **正则匹配** 和 **字符串处理**。
+
+```cpp
+#include <iostream>
+#include <regex>
+using namespace std;
+
+int main() {
+    string str = "abc123";
+    regex pattern("[a-z]+[0-9]+");
+    cout << (regex_match(str, pattern) ? "匹配成功" : "匹配失败") << endl;
+    return 0;
+}
+```
+
+------
+
+### **Lambda 表达式**
+
+支持 **匿名函数**，简化代码。
+
+```cpp
+#include <iostream>
+using namespace std;
+
+int main() {
+    auto add = [](int a, int b) { return a + b; };
+    cout << "3 + 5 = " << add(3, 5) << endl;
+    return 0;
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## 其他
 
 
 
