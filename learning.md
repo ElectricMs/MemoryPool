@@ -2355,13 +2355,144 @@ C++ 标准库的某些容器（如 `std::vector`）在**扩容或重新分配内
 
 #### 完美转发
 
+```cpp
+#include <iostream>
+using namespace std;
+
+void func(int& x) { cout << "左值引用" << endl; }  // 处理左值的版本
+void func(int&& x) { cout << "右值引用" << endl; } // 处理右值的版本
+
+void wrapper(int x) { // ❌ 传值调用，无法区分左值右值
+    func(x);  // 这里的 `x` 是左值
+}
+
+int main() {
+    int a = 10;
+    wrapper(a);    // ❌ 期望调用 `func(int&)`，但 `x` 变成左值
+    wrapper(20);   // ❌ 右值 `20` 传进来变左值
+}
+```
+
+- `wrapper` 传值调用时，参数 `x` 是左值，导致 `func(x)` 无法区分原始的左右值属性！
+- 无论 `wrapper(a)` 还是 `wrapper(20)`，`x` 在 `wrapper` 内部都是左值，导致错误调用 `func(x)`。
+
+要解决这个问题，我们需要：
+
+- 保持 `wrapper` 传递参数的原始左右值属性
+- 确保 `wrapper(a)` 传左值，`wrapper(20)` 传右值
+
+✅ 使用 `std::forward<T>(arg)` 进行完美转发
+
+```cpp
+#include <iostream>
+using namespace std;
+
+void func(int& x) { cout << "左值引用" << endl; }
+void func(int&& x) { cout << "右值引用" << endl; }
+
+template<typename T>
+void wrapper(T&& arg) { // T&& 是万能引用
+    func(std::forward<T>(arg)); // std::forward 保持左右值属性
+}
+
+int main() {
+    int a = 10;
+    wrapper(a);    // ✅ `a` 是左值，调用 `func(int&)`
+    wrapper(20);   // ✅ `20` 是右值，调用 `func(int&&)`
+}
+```
+
+使用例：构造函数转发
+
+```cpp
+#include <iostream>
+using namespace std;
+
+class Person {
+public:
+    template<typename T1, typename T2>
+    Person(T1&& name, T2&& age) : name_(forward<T1>(name)), age_(forward<T2>(age)) {}
+
+private:
+    string name_;
+    int age_;
+};
+
+int main() {
+    string myName = "Alice";
+    Person p1(myName, 25);   // ✅ `myName` 是左值，std::forward 保持左值
+    Person p2("Bob", 30);    // ✅ `"Bob"` 是右值，std::forward 保持右值
+}
+```
+
+#### move与forward
+
+| 功能             | `std::move(arg)`                     | `std::forward<T>(arg)`      |
+| ---------------- | ------------------------------------ | --------------------------- |
+| 用途             | 强制转换为右值                       | 仅在 `T` 为右值时转换为右值 |
+| 是否保留参数类型 | 否，直接变成右值                     | 是，保留左值或右值属性      |
+| 适用场景         | 显式移动对象（如 `std::unique_ptr`） | 完美转发                    |
+
+```cpp
+void test(int&& x) {}
+
+int a = 10;
+test(std::move(a));  // ✅ std::move 强制 `a` 变成右值
+
+template<typename T>
+void wrapper(T&& arg) {
+    test(std::forward<T>(arg));  // ✅ `std::forward` 只有在原本是右值时才会转成右值
+}
+```
+
+`std::move` 强制转换为右值，`std::forward` 只在必要时转换为右值！
 
 
 
+#### 万能引用
 
+什么时候 `T&&` 是右值引用，什么时候是万能引用？
 
+- `T&&` 是右值引用：当 `T` 是非模板参数或显式指定的类型。
+- `T&&` 是万能引用：当 `T` 通过模板参数推导出来，并且 `T&&` 直接出现在 模板参数中。
 
+```cpp
+template <typename T>
+void wrapper(T&& x) {}
 
+int a = 10;
+wrapper(a);  // T 被推导为 int&，所以 wrapper<int&>(int& x)
+wrapper(20); // T 被推导为 int，  所以 wrapper<int>(int&& x)
+```
+
+右值引用：
+
+```cpp
+void func(int&& x) {
+    cout << "右值引用" << endl;
+}
+
+int main() {
+    int a = 10;
+    func(a);  // ❌ 错误，a 是左值，不能绑定到 int&&
+    func(20); // ✅ 正确，20 是右值
+}
+```
+
+万能引用：
+
+```cpp
+template <typename T>
+void wrapper(T&& x) {
+    cout << "T 是 " << typeid(T).name() << endl;
+}
+
+int main() {
+    int a = 10;
+    wrapper(a);   // ✅ T 被推导为 int&，所以 T&& 变成 int&
+    wrapper(20);  // ✅ T 被推导为 int， 所以 T&& 变成 int&&
+}
+```
 
 
 
