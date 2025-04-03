@@ -2537,6 +2537,14 @@ int main() {
 
 支持 **匿名函数**，简化代码。
 
+基本语法（返回类型可省略）：
+
+```cpp
+[捕获列表](参数列表) -> 返回类型 { 函数体 }
+```
+
+基本用法：
+
 ```cpp
 #include <iostream>
 using namespace std;
@@ -2548,13 +2556,105 @@ int main() {
 }
 ```
 
+#### 捕获外部变量
 
+Lambda 可以访问外部变量，但需要通过**捕获列表**显式声明。
 
+**（1）值捕获 `[=]`**
 
+```cpp
+int x = 10, y = 20;
+auto sum = [=]() { return x + y; };  // 捕获 x, y 的值
+cout << sum();  // 输出 30
+```
 
+✔ **值捕获**会拷贝外部变量的值，Lambda 内部不能修改它们。
 
+------
 
+**（2）引用捕获 `[&]`**
 
+```cpp
+int count = 0;
+auto increment = [&]() { count++; };
+increment();
+cout << count;  // 输出 1
+```
+
+✔ **引用捕获**允许修改外部变量。
+
+------
+
+**（3）混合捕获**
+
+```cpp
+int a = 10, b = 20;
+auto func = [a, &b]() {
+    // a 以值传递，不可修改
+    // b 以引用传递，可以修改
+    // a = 15; // ❌ 编译错误（值捕获不可修改）
+    b = 30;  // ✅ 引用捕获可以修改
+};
+func();
+cout << b;  // 输出 30
+```
+
+✔ **值捕获的变量不可修改，引用捕获的变量可修改**。
+
+------
+
+**（4）隐式捕获**
+
+- `[=]`：捕获所有变量（按值）
+- `[&]`：捕获所有变量（按引用）
+- `[=, &var]`：默认值捕获，`var` 采用引用
+- `[&, var]`：默认引用捕获，`var` 采用值捕获
+
+```cpp
+int x = 10, y = 20;
+auto lambda = [=, &y]() { y++; return x + y; };
+lambda();
+cout << y;  // 输出 21
+```
+
+✔ x 按值捕获，y 按引用捕获。
+
+#### Lambda作为参数
+
+Lambda 可以直接传递给 STL 算法，如 `std::sort`：
+
+```cpp
+#include <vector>
+#include <algorithm>
+#include <iostream>
+using namespace std;
+
+int main() {
+    vector<int> v = {5, 2, 8, 1, 4};
+    sort(v.begin(), v.end(), [](int a, int b) { return a < b; });
+    
+    for (int num : v) cout << num << " ";  // 输出 1 2 4 5 8
+}
+```
+
+✔ Lambda 作为 `sort` 的自定义排序函数。
+
+#### Lambda作为返回值
+
+Lambda 也可以作为返回值：
+
+```cpp
+auto getLambda() {
+    return [](int x) { return x * 2; };
+}
+
+int main() {
+    auto f = getLambda();
+    cout << f(10);  // 输出 20
+}
+```
+
+✔ Lambda 作为返回值必须用 `auto` 接收。
 
 
 
